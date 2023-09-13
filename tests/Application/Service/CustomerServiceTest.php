@@ -7,13 +7,20 @@ use App\Infrastructure\Persistence\InMemoryCustomerRepository;
 
 class CustomerServiceTest extends TestCase
 {
+    protected $repository;
+    protected $service;
+    protected $customer;
+
+    protected function setUp(): void
+    {        
+        $this->repository = new InMemoryCustomerRepository();
+        $this->service = new CustomerService($this->repository);
+        $this->customer = $this->service->registerCustomer('Customer Name', 'customer@example.com', '55364454053');
+    }
+
     public function testRegisterCustomerAndPersistInMemory()
     {
-        $repository = new InMemoryCustomerRepository();
-
-        $service = new CustomerService($repository);        
-        $customer = $service->registerCustomer('Customer Name', 'customer@example.com', '55364454053');
-
+        $customer = $this->customer;
         $this->assertInstanceOf(Customer::class, $customer);
         $this->assertEquals('Customer Name', $customer->getName());
         $this->assertEquals('customer@example.com', $customer->getEmail());
@@ -21,11 +28,7 @@ class CustomerServiceTest extends TestCase
 
     public function testRemoveCustomerFromMemory()
     {
-        $repository = new InMemoryCustomerRepository();
-
-        $service = new CustomerService($repository);        
-        $customer = $service->registerCustomer('Customer Name', 'customer@example.com', '55364454053');
-        $service->removeCustomer($customer);
-        $this->assertNull($service->findCustomer($customer->getTaxIdentification()));
+        $this->service->removeCustomer($this->customer);
+        $this->assertNull($this->service->findCustomer($this->customer->getTaxIdentification()));
     }
 }
